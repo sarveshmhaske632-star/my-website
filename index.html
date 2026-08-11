@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mr Narcissist</title>
+<style>
+  :root{
+    --folder:#D9B978;
+    --folder-dark:#B99450;
+    --folder-shadow:#8C6E3A;
+    --paper:#F6F1E2;
+    --paper-line:#E4D9B8;
+    --ink:#2A231A;
+    --ink-soft:#6E624A;
+    --stamp:#A33B2E;
+    --metal:#8B9096;
+    --tape:#EDE2B8;
+    --teal:#2F5750;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at top, #3a3226, #201b15 70%);
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    padding: 32px 14px 60px;
+    display:flex;
+    justify-content:center;
+  }
+
+  .folder{
+    width:100%;
+    max-width: 700px;
+  }
+
+  /* ---- TAB BAR ---- */
+  .tabs{
+    display:flex;
+    padding-left: 18px;
+    position:relative;
+    z-index:2;
+  }
+
+  .tab{
+    font-family:'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: var(--folder-dark);
+    color: #FBF3DC;
+    border: none;
+    border-radius: 6px 6px 0 0;
+    padding: 10px 16px 8px;
+    margin-right: 3px;
+    cursor: pointer;
+    opacity: 0.72;
+    transform: translateY(6px);
+    transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+    white-space: nowrap;
+  }
+
+  .tab:hover{ opacity: 0.9; }
+
+  .tab.active{
+    background: var(--folder);
+    color: var(--ink);
+    opacity: 1;
+    transform: translateY(0);
+    font-weight: bold;
+  }
+
+  /* ---- BODY ---- */
+  .body{
+    background: var(--folder);
+    border-radius: 4px 10px 10px 10px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.45);
+    padding: 22px;
+    position: relative;
+  }
+
+  .sheet{
+    background:
+      repeating-linear-gradient(180deg, transparent, transparent 30px, var(--paper-line) 31px),
+      var(--paper);
+    border-radius: 3px;
+    border: 1px solid #D8CBA2;
+    padding: 28px 26px;
+    min-height: 480px;
+    position: relative;
+    display:none;
+  }
+  .sheet.active{ display:block; animation: rise 0.28s ease; }
+
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(8px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .page-label{
+    font-family:'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--stamp);
+    border: 1px solid var(--stamp);
+    display:inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-bottom: 18px;
+  }
+
+  h1{
+    font-size: 30px;
+    margin: 4px 0 2px;
+    letter-spacing: 0.4px;
+  }
+
+  h2{
+    font-size: 20px;
+    margin: 0 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  /* ---- COVER ---- */
+  #page-cover .cover-inner{
+    text-align:center;
+    padding-top: 10px;
+  }
+
+  .emblem{
+    width: 76px; height:76px;
+    margin: 0 auto 14px;
+    display:block;
+  }
+
+  .cover-kicker{
+    font-family:'Courier New', monospace;
+    letter-spacing: 4px;
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin: 0 0 6px;
+  }
+
+  .cover-name{
+    font-size: 30px;
+    margin: 4px 0 4px;
+    min-height: 38px;
+  }
+
+  .cover-case{
+    font-family:'Courier New', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    letter-spacing: 1px;
+  }
+
+  .cover-photo-wrap{
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    margin: 20px auto 8px;
+    overflow:hidden;
+    background: #EFE6C9;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .cover-photo-wrap img{ width:100%; height:100%; object-fit:cover; }
+
+  .open-btn{
+    margin-top: 22px;
+  }
+
+  .stamp-box{
+    position:absolute;
+    top: 22px; right: 20px;
+    width: 96px; height:96px;
+    border: 3px solid var(--stamp);
+    border-radius: 50%;
+    color: var(--stamp);
+    font-family:'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    transform: rotate(-14deg) scale(0);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(.2,1.6,.4,1), opacity 0.2s ease;
+    pointer-events:none;
+  }
+  .stamp-box.show{ transform: rotate(-14deg) scale(1); opacity: 0.9; }
+  .stamp-box b{ font-size: 13px; margin: 3px 0; letter-spacing: 2px; }
+
+  /* ---- FORM GRID ---- */
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 22px;
+  }
+  .grid.single{ grid-template-columns: 1fr; }
+  .field.wide{ grid-column: 1 / -1; }
+
+  .field label{
+    display:block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.1px;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+    font-family:'Courier New', monospace;
+  }
+
+  .field input,
+  .field textarea{
+    width:100%;
+    font-family: Georgia, serif;
+    font-size: 15px;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #C9BA8E;
+    padding: 6px 2px 7px;
+    outline: none;
+  }
+  .field input:focus,
+  .field textarea:focus{ border-bottom: 1px solid var(--teal); }
+  .field textarea{ resize: vertical; min-height: 56px; line-height:1.5; }
+  .field input::placeholder, .field textarea::placeholder{ color:#B3A780; }
+
+  /* ---- IDENTITY mugshot ---- */
+  .id-mug{
+    float:right;
+    width: 116px;
+    margin: -4px 0 10px 16px;
+    text-align:center;
+  }
+  .id-mug .frame{
+    width: 116px;
+    height: 140px;
+    background: #EFE6C9;
+    border: 1px solid var(--ink);
+    position: relative;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .id-mug .frame img{ width:100%; height:100%; object-fit:cover; }
+  .id-mug .clip{
+    position:absolute;
+    top:-9px; left: 50%;
+    transform: translateX(-50%) rotate(-4deg);
+    width: 26px; height: 30px;
+    z-index:3;
+  }
+  .id-mug small{
+    display:block;
+    margin-top: 6px;
+    font-family:'Courier New', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+  }
+
+  /* ---- PHOTOGRAPHS page ---- */
+  .photo-board{
+    display:flex;
+    gap: 26px;
+    flex-wrap: wrap;
+    justify-content:center;
+    padding-top: 6px;
+  }
+  .photo-slot{ text-align:center; width: 220px; }
+  .photo-mount{
+    width: 220px;
+    height: 220px;
+    background: #EFE6C9;
+    border: 1px solid #D8CBA2;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+    position: relative;
+    cursor:pointer;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transform: rotate(-1.4deg);
+  }
+  .photo-slot:nth-child(2) .photo-mount{ transform: rotate(1.6deg); }
+  .photo-mount img{ width:100%; height:100%; object-fit:cover; }
+  .photo-mount .placeholder{
+    color: #A99A6E;
+    font-family:'Courier New', monospace;
+    font-size: 11px;
+    text-align:center;
+    padding: 10px;
+  }
+  .tape{
+    position:absolute;
+    width: 46px; height: 18px;
+    background: var(--tape);
+    opacity: 0.85;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .tape.tl{ top:-8px; left:-8px; transform: rotate(-40deg); }
+  .tape.tr{ top:-8px; right:-8px; transform: rotate(40deg); }
+
+  .photo-caption{
+    margin-top: 10px;
+    font-family:'Courier New', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .photo-remove{
+    margin-top: 6px;
+    font-family:'Courier New', monospace;
+    font-size: 10px;
+    color: var(--stamp);
+    background:none;
+    border:none;
+    text-decoration: underline;
+    cursor:pointer;
+    padding: 0;
+  }
+
+  /* ---- NOTES stamp ---- */
+  .notes-stamp{
+    position:absolute;
+    bottom: 20px; right: 24px;
+    color: var(--teal);
+    border: 2px solid var(--teal);
+    border-radius: 3px;
+    padding: 6px 12px;
+    font-family:'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    transform: rotate(-6deg) scale(0);
+    opacity:0;
+    transition: transform 0.4s cubic-bezier(.2,1.6,.4,1), opacity 0.2s ease;
+  }
+  .notes-stamp.show{ transform: rotate(-6deg) scale(1); opacity: 0.85; }
+
+  /* ---- FOOTER / nav ---- */
+  .nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top: 16px;
+    padding: 0 4px;
+  }
+
+  .arrow-btn{
+    font-family:'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    background: none;
+    border: 1px solid #C9BA8E;
+    color: var(--ink-soft);
+    padding: 8px 14px;
+    border-radius: 3px;
+    cursor:pointer;
+  }
+  .arrow-btn:hover{ border-color: var(--ink); color: var(--ink); }
+
+  .status{
+    font-family:'Courier New', monospace;
+    font-size: 10.5px;
+    color: #FBF3DC;
+    text-align:center;
+    letter-spacing: 0.5px;
+  }
+  .status .dot{
+    display:inline-block; width:6px; height:6px; border-radius:50%;
+    background:#8C6E3A; margin-right:5px; vertical-align:middle;
+  }
+  .status.saved .dot{ background:#5D8A72; }
+
+  .actions{
+    display:flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content:center;
+    margin-top: 18px;
+  }
+
+  button.act{
+    font-family:'Courier New', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 11.5px;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 10px 16px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+  }
+  button.act.secondary{ background: transparent; color: var(--ink); border-color: var(--ink-soft); }
+  button.act.danger{ background: transparent; color: var(--stamp); border-color: var(--stamp); }
+  button.act:active{ transform: translateY(1px); }
+  input[type=file]{ display:none; }
+
+  .hint{
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 14px;
+    line-height:1.6;
+    text-align:center;
+    font-family:'Courier New', monospace;
+  }
+
+  @media (max-width: 560px){
+    .grid{ grid-template-columns: 1fr; }
+    .id-mug{ float:none; margin: 0 auto 16px; }
+    .tabs{ overflow-x:auto; padding-left:6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="folder">
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-page="cover">Cover</button>
+    <button class="tab" data-page="identity">Identity</button>
+    <button class="tab" data-page="photos">Photographs</button>
+    <button class="tab" data-page="contact">Contact</button>
+    <button class="tab" data-page="emergency">Emergency</button>
+    <button class="tab" data-page="notes">Notes</button>
+  </div>
+
+  <div class="body">
+
+    <!-- COVER -->
+    <section class="sheet active" id="page-cover">
+      <div class="stamp-box" id="coverStamp"><span>FILED</span><b id="stampDate">—</b><span>ON RECORD</span></div>
+      <div class="cover-inner">
+        <svg class="emblem" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="46" fill="none" stroke="#2A231A" stroke-width="2"/>
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#2A231A" stroke-width="1"/>
+          <path d="M50 18 L58 42 L84 42 L63 57 L71 82 L50 67 L29 82 L37 57 L16 42 L42 42 Z" fill="#2A231A"/>
+        </svg>
+        <p class="cover-kicker">All About Me · Personal Record</p>
+        <div class="cover-photo-wrap" id="coverPhotoWrap" onclick="document.getElementById('file1').click()" style="cursor:pointer;"><span style="font-family:'Courier New',monospace;font-size:10px;color:#A99A6E;">CLICK TO ADD PHOTO</span></div>
+        <h1 class="cover-name" id="coverName">Sarvesh Vijay Mhaske</h1>
+        <p class="cover-case" id="coverCase">CASE No. 08-08-2009</p>
+        <button type="button" class="act open-btn" id="openBtn">Open File →</button>
+      </div>
+    </section>
+
+    <!-- IDENTITY -->
+    <section class="sheet" id="page-identity">
+      <p class="page-label">Page 1 of 5</p>
+      <div class="id-mug">
+        <div class="frame" id="mugFrame"><span style="font-family:'Courier New',monospace;font-size:10px;color:#A99A6E;">NO PHOTO</span></div>
+        <small>see "Photographs"</small>
+      </div>
+      <h2>Identity</h2>
+      <div class="grid">
+        <div class="field wide">
+          <label for="fullName">Full name</label>
+          <input type="text" id="fullName" placeholder="e.g. Aarav Sharma">
+        </div>
+        <div class="field">
+          <label for="dob">Date of birth</label>
+          <input type="date" id="dob">
+        </div>
+        <div class="field">
+          <label for="gender">Gender</label>
+          <input type="text" id="gender" placeholder="e.g. Male / Female / Other">
+        </div>
+        <div class="field">
+          <label for="bloodGroup">Blood group</label>
+          <input type="text" id="bloodGroup" placeholder="e.g. O+">
+        </div>
+        <div class="field">
+          <label for="nationality">Nationality</label>
+          <input type="text" id="nationality" placeholder="e.g. Indian">
+        </div>
+      </div>
+    </section>
+
+    <!-- PHOTOGRAPHS -->
+    <section class="sheet" id="page-photos">
+      <p class="page-label">Page 2 of 5</p>
+      <h2>Photographs</h2>
+      <div class="photo-board">
+        <div class="photo-slot">
+          <div class="photo-mount" id="mount1">
+            <div class="tape tl"></div><div class="tape tr"></div>
+            <span class="placeholder">Click to add<br>Photo 1</span>
+          </div>
+          <div class="photo-caption">Photo 1 · used as ID photo</div>
+          <button type="button" class="photo-remove" id="remove1" style="display:none;">remove</button>
+          <input type="file" id="file1" accept="image/*">
+        </div>
+        <div class="photo-slot">
+          <div class="photo-mount" id="mount2">
+            <div class="tape tl"></div><div class="tape tr"></div>
+            <span class="placeholder">Click to add<br>Photo 2</span>
+          </div>
+          <div class="photo-caption">Photo 2</div>
+          <button type="button" class="photo-remove" id="remove2" style="display:none;">remove</button>
+          <input type="file" id="file2" accept="image/*">
+        </div>
+      </div>
+      <p class="hint">“From where it all began… to where I stand today — it all went by in a heartbeat.”</p>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="sheet" id="page-contact">
+      <p class="page-label">Page 3 of 5</p>
+      <h2>Contact</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" placeholder="+91 98765 43210">
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@example.com">
+        </div>
+        <div class="field wide">
+          <label for="address">Address</label>
+          <textarea id="address" placeholder="House / street / area"></textarea>
+        </div>
+        <div class="field">
+          <label for="city">City</label>
+          <input type="text" id="city" placeholder="e.g. Mumbai">
+        </div>
+        <div class="field">
+          <label for="state">State</label>
+          <input type="text" id="state" placeholder="e.g. Maharashtra">
+        </div>
+        <div class="field">
+          <label for="pincode">PIN / ZIP code</label>
+          <input type="text" id="pincode" placeholder="e.g. 400001">
+        </div>
+        <div class="field">
+          <label for="country">Country</label>
+          <input type="text" id="country" placeholder="e.g. India">
+        </div>
+      </div>
+    </section>
+
+    <!-- EMERGENCY -->
+    <section class="sheet" id="page-emergency">
+      <p class="page-label">Page 4 of 5</p>
+      <h2>Emergency contact</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="emName">Name</label>
+          <input type="text" id="emName" placeholder="Contact person's name">
+        </div>
+        <div class="field">
+          <label for="emRelation">Relation</label>
+          <input type="text" id="emRelation" placeholder="e.g. Father, Spouse">
+        </div>
+        <div class="field wide">
+          <label for="emPhone">Phone</label>
+          <input type="tel" id="emPhone" placeholder="+91 98765 43210">
+        </div>
+      </div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="sheet" id="page-notes">
+      <p class="page-label">Page 5 of 5</p>
+      <h2>Notes</h2>
+      <div class="grid single">
+        <div class="field">
+          <label for="notes">Anything else worth keeping on file</label>
+          <textarea id="notes" placeholder="Allergies, ID numbers, preferences, etc." style="min-height:100px;"></textarea>
+        </div>
+      </div>
+      <div class="notes-stamp" id="notesStamp">RECORDED</div>
+    </section>
+
+    <div class="nav">
+      <button type="button" class="arrow-btn" id="prevBtn">← Prev</button>
+      <div class="status" id="status"><span class="dot"></span><span id="statusText">not saved yet</span></div>
+      <button type="button" class="arrow-btn" id="nextBtn">Next →</button>
+    </div>
+
+  </div>
+
+  <div class="actions">
+    <button type="button" class="act" id="saveBtn">Save Record</button>
+    <button type="button" class="act secondary" id="exportBtn">Export Copy</button>
+    <button type="button" class="act secondary" id="importBtn">Import Copy</button>
+    <button type="button" class="act danger" id="clearBtn">Erase File</button>
+    <input type="file" id="importInput" accept="application/json">
+  </div>
+  <p class="hint">Everything — including photos — is saved only in this browser, on this device. Export a backup file to keep a copy or move it elsewhere.</p>
+
+</div>
+
+<script>
+  const TEXT_FIELDS = [
+    'fullName','dob','gender','bloodGroup','nationality',
+    'phone','email','address','city','state','pincode','country',
+    'emName','emRelation','emPhone','notes'
+  ];
+  const STORAGE_KEY = 'personalDossier_v1';
+  const PAGES = ['cover','identity','photos','contact','emergency','notes'];
+
+  let photo1 = null;
+  let photo2 = null;
+  let currentPage = 0;
+
+  const statusEl = document.getElementById('status');
+  const statusText = document.getElementById('statusText');
+
+  // ---------- Page navigation ----------
+  function showPage(index){
+    currentPage = ((index % PAGES.length) + PAGES.length) % PAGES.length;
+    PAGES.forEach((p, i) => {
+      document.getElementById('page-' + p).classList.toggle('active', i === currentPage);
+    });
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.page === PAGES[currentPage]);
+    });
+  }
+
+  document.getElementById('tabs').addEventListener('click', e => {
+    const btn = e.target.closest('.tab');
+    if(!btn) return;
+    showPage(PAGES.indexOf(btn.dataset.page));
+  });
+  document.getElementById('openBtn').addEventListener('click', () => showPage(1));
+  document.getElementById('prevBtn').addEventListener('click', () => showPage(currentPage - 1));
+  document.getElementById('nextBtn').addEventListener('click', () => showPage(currentPage + 1));
+
+  // ---------- Live cover name/case ----------
+  const fullNameInput = document.getElementById('fullName');
+  const dobInput = document.getElementById('dob');
+  function refreshCover(){
+    const name = fullNameInput.value.trim() || 'Sarvesh Vijay Mhaske';
+    document.getElementById('coverName').textContent = name;
+    document.getElementById('coverCase').textContent = 'CASE No. 08-08-2009';
+  }
+  function caseNumber(){
+    return '08-08-2009';
+  }
+  fullNameInput.addEventListener('input', refreshCover);
+  dobInput.addEventListener('input', refreshCover);
+
+  // ---------- Photo handling ----------
+  function resizeImage(file, maxDim, quality){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if(width > height && width > maxDim){
+            height = Math.round(height * (maxDim / width)); width = maxDim;
+          } else if(height >= width && height > maxDim){
+            width = Math.round(width * (maxDim / height)); height = maxDim;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderPhoto(slot, dataUrl){
+    const mount = document.getElementById('mount' + slot);
+    const removeBtn = document.getElementById('remove' + slot);
+    mount.innerHTML = '<div class="tape tl"></div><div class="tape tr"></div>';
+    if(dataUrl){
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      mount.appendChild(img);
+      removeBtn.style.display = 'inline-block';
+    } else {
+      const span = document.createElement('span');
+      span.className = 'placeholder';
+      span.innerHTML = 'Click to add<br>Photo ' + slot;
+      mount.appendChild(span);
+      removeBtn.style.display = 'none';
+    }
+    if(slot === '1'){
+      const mug = document.getElementById('mugFrame');
+      const coverWrap = document.getElementById('coverPhotoWrap');
+      if(dataUrl){
+        mug.innerHTML = '<img src="' + dataUrl + '">';
+        coverWrap.innerHTML = '<img src="' + dataUrl + '">';
+      } else {
+        mug.innerHTML = '<span style="font-family:\'Courier New\',monospace;font-size:10px;color:#A99A6E;">NO PHOTO</span>';
+        coverWrap.innerHTML = '<span style="font-family:\'Courier New\',monospace;font-size:10px;color:#A99A6E;">PHOTO</span>';
+      }
+    }
+  }
+
+  document.getElementById('mount1').addEventListener('click', () => document.getElementById('file1').click());
+  document.getElementById('mount2').addEventListener('click', () => document.getElementById('file2').click());
+
+  document.getElementById('file1').addEventListener('change', async e => {
+    const f = e.target.files[0]; if(!f) return;
+    photo1 = await resizeImage(f, 480, 0.82);
+    renderPhoto('1', photo1);
+    saveToStorage();
+    e.target.value = '';
+  });
+  document.getElementById('file2').addEventListener('change', async e => {
+    const f = e.target.files[0]; if(!f) return;
+    photo2 = await resizeImage(f, 480, 0.82);
+    renderPhoto('2', photo2);
+    saveToStorage();
+    e.target.value = '';
+  });
+  document.getElementById('remove1').addEventListener('click', () => { photo1 = null; renderPhoto('1', null); saveToStorage(); });
+  document.getElementById('remove2').addEventListener('click', () => { photo2 = null; renderPhoto('2', null); saveToStorage(); });
+
+  // ---------- Save / Load / Export / Import / Clear ----------
+  function collectData(){
+    const data = {};
+    TEXT_FIELDS.forEach(id => { data[id] = document.getElementById(id).value; });
+    data.photo1 = photo1;
+    data.photo2 = photo2;
+    return data;
+  }
+
+  function fillForm(data){
+    TEXT_FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = data[id] || '';
+    });
+    photo1 = data.photo1 || null;
+    photo2 = data.photo2 || null;
+    renderPhoto('1', photo1);
+    renderPhoto('2', photo2);
+    refreshCover();
+  }
+
+  function markSaved(dateObj){
+    statusEl.classList.add('saved');
+    statusText.textContent = 'saved ' + dateObj.toLocaleString();
+    const stampDate = dateObj.toLocaleDateString();
+    document.getElementById('stampDate').textContent = stampDate;
+    document.getElementById('coverStamp').classList.add('show');
+    const notesStamp = document.getElementById('notesStamp');
+    notesStamp.textContent = 'RECORDED ' + stampDate;
+    notesStamp.classList.remove('show'); void notesStamp.offsetWidth; notesStamp.classList.add('show');
+  }
+
+  function saveToStorage(){
+    const data = collectData();
+    const now = new Date();
+    const payload = { data, savedAt: now.toISOString() };
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      markSaved(now);
+    }catch(e){
+      alert('Could not save — storage may be full. Try smaller photos or export a backup instead.');
+      console.error(e);
+    }
+  }
+
+  function applyPermanentIdentityDefaults(){
+    document.getElementById('fullName').value = 'Sarvesh Vijay Mhaske';
+    document.getElementById('dob').value = '2009-08-08';
+    document.getElementById('gender').value = 'Male';
+    document.getElementById('bloodGroup').value = 'A+';
+    document.getElementById('nationality').value = 'Indian';
+    refreshCover();
+  }
+
+  function loadFromStorage(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw){
+        applyPermanentIdentityDefaults();
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      fillForm(parsed.data || {});
+      applyPermanentIdentityDefaults();
+      if(parsed.savedAt) markSaved(new Date(parsed.savedAt));
+    }catch(e){
+      console.error('Could not load saved dossier:', e);
+      applyPermanentIdentityDefaults();
+    }
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', saveToStorage);
+
+  TEXT_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if(el){
+      el.addEventListener('change', saveToStorage);
+      el.addEventListener('input', () => {
+        if(id === 'fullName' || id === 'dob') refreshCover();
+      });
+    }
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const data = collectData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const namePart = (data.fullName || 'dossier').trim().replace(/\s+/g,'_').toLowerCase();
+    a.href = url; a.download = namePart + '_dossier.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importInput').click());
+  document.getElementById('importInput').addEventListener('change', e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try{
+        const data = JSON.parse(evt.target.result);
+        fillForm(data);
+        saveToStorage();
+      }catch(err){ alert('That file could not be read as a dossier backup.'); console.error(err); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if(!confirm('This will erase everything saved in this browser, including photos. Continue?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    fillForm({});
+    applyPermanentIdentityDefaults();
+    statusEl.classList.remove('saved');
+    statusText.textContent = 'not saved yet';
+    document.getElementById('coverStamp').classList.remove('show');
+    document.getElementById('notesStamp').classList.remove('show');
+    showPage(0);
+  });
+
+  loadFromStorage();
+</script>
+
+</body>
+</html>
