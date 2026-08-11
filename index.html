@@ -783,22 +783,38 @@
     refreshCover();
   }
 
-  function loadFromStorage(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw){
-        applyPermanentIdentityDefaults();
-        return;
-      }
+  async function loadFromStorage(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+
+    // If this device already has saved data, use it.
+    if(raw){
       const parsed = JSON.parse(raw);
       fillForm(parsed.data || {});
       applyPermanentIdentityDefaults();
       if(parsed.savedAt) markSaved(new Date(parsed.savedAt));
-    }catch(e){
-      console.error('Could not load saved dossier:', e);
-      applyPermanentIdentityDefaults();
+      return;
     }
+
+    // New device/browser: load the default record from GitHub.
+    const response = await fetch('dossier.json');
+
+    if(!response.ok){
+      throw new Error('Could not load dossier.json');
+    }
+
+    const data = await response.json();
+    fillForm(data);
+    applyPermanentIdentityDefaults();
+
+    // Save it locally so it works normally on this device afterward.
+    saveToStorage();
+
+  }catch(e){
+    console.error('Could not load saved dossier:', e);
+    applyPermanentIdentityDefaults();
   }
+}
 
   document.getElementById('saveBtn').addEventListener('click', saveToStorage);
 
