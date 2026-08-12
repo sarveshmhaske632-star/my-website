@@ -423,6 +423,36 @@
     .id-mug{ float:none; margin: 0 auto 16px; }
     .tabs{ overflow-x:auto; padding-left:6px; }
   }
+  /* ===== VIEW ONLY MODE ===== */
+
+/* Make all information fields read-only */
+.field input,
+.field textarea {
+  pointer-events: none;
+  user-select: text;
+}
+
+/* Prevent visitors from changing photos */
+.photo-mount,
+.cover-photo-wrap {
+  pointer-events: none;
+  cursor: default;
+}
+
+/* Hide photo removal controls */
+.photo-remove {
+  display: none !important;
+}
+
+/* Hide the file upload controls */
+input[type=file] {
+  display: none !important;
+}
+
+/* Hide Save / Export / Import / Erase buttons */
+.actions {
+  display: none !important;
+}
 </style>
 </head>
 <body>
@@ -867,6 +897,20 @@
   });
 
   loadFromStorage();
+  // ===== VIEW ONLY MODE =====
+document.querySelectorAll('.field input, .field textarea').forEach(el => {
+  el.readOnly = true;
+  el.tabIndex = -1;
+});
+
+document.querySelectorAll('.photo-mount, .cover-photo-wrap').forEach(el => {
+  el.onclick = null;
+  el.style.pointerEvents = 'none';
+});
+
+document.querySelectorAll('.photo-remove, input[type=file]').forEach(el => {
+  el.disabled = true;
+});
 </script>
 
 </body>
